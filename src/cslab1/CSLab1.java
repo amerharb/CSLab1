@@ -21,6 +21,7 @@ import java.security.cert.CertificateException;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.Mac;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
@@ -41,6 +42,8 @@ public class CSLab1
 
     byte[] mac1 = new byte[16];
     byte[] mac2 = new byte[16];
+
+    byte[] HMacMD5;
 
     public static void main(String[] args)
     {
@@ -107,6 +110,14 @@ public class CSLab1
             }
             System.out.println("");
             for (byte b : mac2) {
+                System.out.print(b);
+            }
+
+            fillHmacMD5();
+            
+            //TEST
+            System.out.println("");
+            for (byte b : HMacMD5) {
                 System.out.print(b);
             }
             
@@ -242,7 +253,7 @@ public class CSLab1
             for (int i = 0; i < 16; i++) {
                 mac2[i] = (byte) Integer.parseInt(mac2Str.substring(i * 2, i * 2 + 2), 16);
             }
-            
+
         } catch (FileNotFoundException ex) {
             Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -251,4 +262,20 @@ public class CSLab1
             Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
+    private void fillHmacMD5()
+    {
+
+        try {
+            SecretKeySpec k = new SecretKeySpec(Key2, "HmacMD5");
+            Mac mac = Mac.getInstance("HmacMD5");
+            mac.init(k);
+
+            HMacMD5 = mac.doFinal(plainText);
+
+        } catch (InvalidKeyException | NoSuchAlgorithmException ex) {
+            Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
 }
