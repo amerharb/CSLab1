@@ -3,7 +3,10 @@ package cslab1;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
@@ -35,6 +38,9 @@ public class CSLab1
     byte[] IV;
     byte[] Key2;
     byte[] plainText;
+
+    byte[] mac1 = new byte[16];
+    byte[] mac2 = new byte[16];
 
     public static void main(String[] args)
     {
@@ -84,15 +90,26 @@ public class CSLab1
 
             //decryt the test
             decryptText();
-            
+
             //TEST
             System.out.println("");
             System.out.println(plainText.length);
             for (byte b : plainText) {
                 System.out.print(b);
             }
-            
             System.out.println(new String(plainText));
+
+            readMac();
+            //TEST
+            System.out.println("");
+            for (byte b : mac1) {
+                System.out.print(b);
+            }
+            System.out.println("");
+            for (byte b : mac2) {
+                System.out.print(b);
+            }
+            
         } catch (Exception ex) {
             Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -126,6 +143,7 @@ public class CSLab1
                 System.arraycopy(b, 0, all, temp.length, r);
             }
             encText = all;
+            fis.close();
 
         } catch (FileNotFoundException ex) {
             Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
@@ -193,7 +211,7 @@ public class CSLab1
             Cipher aesDec = Cipher.getInstance("AES/CBC/NoPadding");
             Key k = new SecretKeySpec(Key1, "AES");
             IvParameterSpec v = new IvParameterSpec(IV);
-            
+
             aesDec.init(Cipher.DECRYPT_MODE, k, v);
             plainText = aesDec.doFinal(encText);
 
@@ -208,6 +226,28 @@ public class CSLab1
         } catch (NoSuchPaddingException ex) {
             Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
         } catch (InvalidAlgorithmParameterException ex) {
+            Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void readMac()
+    {
+        try {
+            String mac1Str = new String(Files.readAllBytes(Paths.get("ciphertext.mac1.txt")));
+            for (int i = 0; i < 16; i++) {
+                mac1[i] = (byte) Integer.parseInt(mac1Str.substring(i * 2, i * 2 + 2), 16);
+            }
+
+            String mac2Str = new String(Files.readAllBytes(Paths.get("ciphertext.mac2.txt")));
+            for (int i = 0; i < 16; i++) {
+                mac2[i] = (byte) Integer.parseInt(mac2Str.substring(i * 2, i * 2 + 2), 16);
+            }
+            
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
             Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
