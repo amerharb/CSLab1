@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.KeyStore;
@@ -19,6 +20,8 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
 public class CSLab1
 {
@@ -79,6 +82,17 @@ public class CSLab1
             }
             System.out.println("");
 
+            //decryt the test
+            decryptText();
+            
+            //TEST
+            System.out.println("");
+            System.out.println(plainText.length);
+            for (byte b : plainText) {
+                System.out.print(b);
+            }
+            
+            System.out.println(new String(plainText));
         } catch (Exception ex) {
             Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -94,7 +108,7 @@ public class CSLab1
             fis.read(encKey1);
             fis.read(encIV);
             fis.read(encKey2);
-            
+
             int r = 0;
             int size = 0;
             byte[] all = new byte[0];
@@ -109,10 +123,10 @@ public class CSLab1
                 //expand the final array
                 all = new byte[size]; //final array
                 System.arraycopy(temp, 0, all, 0, temp.length);
-                System.arraycopy(b, 0, all, temp.length, r);    
+                System.arraycopy(b, 0, all, temp.length, r);
             }
             encText = all;
-            
+
         } catch (FileNotFoundException ex) {
             Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -175,6 +189,26 @@ public class CSLab1
 
     private void decryptText()
     {
+        try {
+            Cipher aesDec = Cipher.getInstance("AES/CBC/NoPadding");
+            Key k = new SecretKeySpec(Key1, "AES");
+            IvParameterSpec v = new IvParameterSpec(IV);
+            
+            aesDec.init(Cipher.DECRYPT_MODE, k, v);
+            plainText = aesDec.doFinal(encText);
 
+        } catch (InvalidKeyException ex) {
+            Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IllegalBlockSizeException ex) {
+            Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (BadPaddingException ex) {
+            Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NoSuchPaddingException ex) {
+            Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InvalidAlgorithmParameterException ex) {
+            Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 }
