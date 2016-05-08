@@ -26,10 +26,12 @@ public class CSLab1
     byte[] encKey1 = new byte[128];
     byte[] encIV = new byte[128];
     byte[] encKey2 = new byte[128];
+    byte[] encText;
 
     byte[] Key1;
     byte[] IV;
     byte[] Key2;
+    byte[] plainText;
 
     public static void main(String[] args)
     {
@@ -41,7 +43,7 @@ public class CSLab1
 
         try {
             // read file enc file and put them inside 3 var
-            readEncKeys();
+            readEncKeysAndText();
 
             //TEST
             for (byte b : encKey1) {
@@ -56,7 +58,10 @@ public class CSLab1
                 System.out.print(b);
             }
             System.out.println("");
-
+            System.out.println(encText.length);
+            for (byte b : encText) {
+                System.out.print(b);
+            }
             //deEnc
             decKeys();
 
@@ -79,7 +84,7 @@ public class CSLab1
         }
     }
 
-    private void readEncKeys()
+    private void readEncKeysAndText()
     {
         try {
             // read file enc file and put them inside 3 var
@@ -89,7 +94,25 @@ public class CSLab1
             fis.read(encKey1);
             fis.read(encIV);
             fis.read(encKey2);
+            
+            int r = 0;
+            int size = 0;
+            byte[] all = new byte[0];
+            final int BUFFER_SIZE = 1024;
+            byte[] b = new byte[BUFFER_SIZE];
+            while ((r = fis.read(b)) != -1) {
+                size += r;
 
+                //keep final array in temp array before expand it
+                byte[] temp = new byte[all.length];
+                System.arraycopy(all, 0, temp, 0, all.length);
+                //expand the final array
+                all = new byte[size]; //final array
+                System.arraycopy(temp, 0, all, 0, temp.length);
+                System.arraycopy(b, 0, all, temp.length, r);    
+            }
+            encText = all;
+            
         } catch (FileNotFoundException ex) {
             Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -109,10 +132,7 @@ public class CSLab1
             Key1 = rsaDec.doFinal(encKey1);
             IV = rsaDec.doFinal(encIV);
             Key2 = rsaDec.doFinal(encKey2);
-            
-            //TEST
-            System.out.println(Key1.length + " " + IV.length + " " + Key2.length);
-            
+
         } catch (NoSuchAlgorithmException ex) {
             Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IllegalBlockSizeException ex) {
@@ -126,7 +146,7 @@ public class CSLab1
         }
     }
 
-    private static PrivateKey getReciverPrivateKey()
+    private PrivateKey getReciverPrivateKey()
     {
         try {
             KeyStore s = KeyStore.getInstance("JCEKS");
@@ -151,5 +171,10 @@ public class CSLab1
             Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
+    }
+
+    private void decryptText()
+    {
+
     }
 }
