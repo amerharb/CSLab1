@@ -30,19 +30,23 @@ import javax.crypto.spec.SecretKeySpec;
 public class CSLab1
 {
 
+    //fill data from ciphertext.enc file into these var
     byte[] encKey1 = new byte[128];
     byte[] encIV = new byte[128];
     byte[] encKey2 = new byte[128];
     byte[] encText;
 
+    //value after decryption values from ciphertext.enc
     byte[] Key1;
     byte[] IV;
     byte[] Key2;
     byte[] plainText;
 
+    //fill value from ciphertext.mac1.txt and ciphertext.mac2.txt file
     byte[] mac1 = new byte[16];
     byte[] mac2 = new byte[16];
 
+    //calc the HMacMD5 from plainText and Key2
     byte[] HMacMD5;
 
     public static void main(String[] args)
@@ -52,75 +56,48 @@ public class CSLab1
 
     public CSLab1()
     {
-
+        final boolean debug = true;
         try {
-            // read file enc file and put them inside 3 var
+            // read file enc file and put them inside 4 var
             readEncKeysAndText();
 
-            //TEST
-            for (byte b : encKey1) {
-                System.out.print(b);
+            //TEST: print Enc the values
+            if (debug) {
+                printEnc();
             }
-            System.out.println("");
-            for (byte b : encIV) {
-                System.out.print(b);
-            }
-            System.out.println("");
-            for (byte b : encKey2) {
-                System.out.print(b);
-            }
-            System.out.println("");
-            System.out.println(encText.length);
-            for (byte b : encText) {
-                System.out.print(b);
-            }
-            //deEnc
+
+            //Decryption the values of the Keys and IV
             decKeys();
 
-            //TEST
-            for (byte b : Key1) {
-                System.out.print(b);
+            //TEST: print the Keys and IV
+            if (debug) {
+                printKeys();
             }
-            System.out.println("");
-            for (byte b : IV) {
-                System.out.print(b);
-            }
-            System.out.println("");
-            for (byte b : Key2) {
-                System.out.print(b);
-            }
-            System.out.println("");
 
-            //decryt the test
+            //decrytion the text and fill plainText var
             decryptText();
 
-            //TEST
-            System.out.println("");
-            System.out.println(plainText.length);
-            for (byte b : plainText) {
-                System.out.print(b);
+            //TEST: print the plain text
+            if (debug) {
+                System.out.println(new String(plainText));
             }
-            System.out.println(new String(plainText));
 
+            //fill mac from files
             readMac();
-            //TEST
-            System.out.println("");
-            for (byte b : mac1) {
-                System.out.print(b);
-            }
-            System.out.println("");
-            for (byte b : mac2) {
-                System.out.print(b);
+
+            //TEST: print the mac1 and mac2
+            if (debug) {
+                printMac();
             }
 
+            //calc HmacMD5 and fill var HmacMD5 with its value
             fillHmacMD5();
-            
-            //TEST
-            System.out.println("");
-            for (byte b : HMacMD5) {
-                System.out.print(b);
+
+            //TEST: print HmacMD5
+            if (debug) {
+                printHMacMD5();
             }
-            
+
         } catch (Exception ex) {
             Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -275,6 +252,62 @@ public class CSLab1
 
         } catch (InvalidKeyException | NoSuchAlgorithmException ex) {
             Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void printEnc()
+    {
+        for (byte b : encKey1) {
+            System.out.print(b);
+        }
+        System.out.println("");
+        for (byte b : encIV) {
+            System.out.print(b);
+        }
+        System.out.println("");
+        for (byte b : encKey2) {
+            System.out.print(b);
+        }
+        System.out.println("");
+        System.out.println("Enc data Length: " + encText.length);
+    }
+
+    private void printKeys()
+    {
+        for (byte b : Key1) {
+            System.out.print(b);
+        }
+        System.out.println("");
+        for (byte b : IV) {
+            System.out.print(b);
+        }
+        System.out.println("");
+        for (byte b : Key2) {
+            System.out.print(b);
+        }
+        System.out.println("");
+    }
+
+    private void printMac()
+    {
+        System.out.println("");
+        System.out.print("MAC1: ");
+        for (byte b : mac1) {
+            System.out.print(b);
+        }
+        System.out.println("");
+        System.out.print("MAC2: ");
+        for (byte b : mac2) {
+            System.out.print(b);
+        }
+    }
+
+    private void printHMacMD5()
+    {
+        System.out.println("");
+        System.out.print("HmacMD5: ");
+        for (byte b : HMacMD5) {
+            System.out.print(b);
         }
     }
 
