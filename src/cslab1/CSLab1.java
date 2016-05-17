@@ -83,7 +83,7 @@ public class CSLab1
             }
 
             //fill mac from files
-            readMac();
+                readMac();
 
             //TEST: print the mac1 and mac2
             if (debug) {
@@ -291,10 +291,14 @@ public class CSLab1
     private void printMac()
     {
         System.out.println("");
+        System.out.print("MAC1 Length: " + mac1.length);
+        System.out.println("");
         System.out.print("MAC1: ");
         for (byte b : mac1) {
             System.out.print(b);
         }
+        System.out.println("");
+        System.out.print("MAC2 Length: " + mac2.length);
         System.out.println("");
         System.out.print("MAC2: ");
         for (byte b : mac2) {
@@ -304,6 +308,8 @@ public class CSLab1
 
     private void printHMacMD5()
     {
+        System.out.println("");
+        System.out.print("HmacMD5 Length: " + HMacMD5.length);
         System.out.println("");
         System.out.print("HmacMD5: ");
         for (byte b : HMacMD5) {
