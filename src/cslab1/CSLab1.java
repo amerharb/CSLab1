@@ -3,7 +3,6 @@ package cslab1;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -16,16 +15,20 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.Signature;
+import java.security.SignatureException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.Mac;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.security.cert.X509Certificate;
 
 public class CSLab1
 {
@@ -35,6 +38,9 @@ public class CSLab1
     byte[] encIV = new byte[128];
     byte[] encKey2 = new byte[128];
     byte[] encText;
+
+    //ReciverPrivateKey
+    PrivateKey reciverPrivateKey;
 
     //value after decryption values from ciphertext.enc
     byte[] Key1;
@@ -49,6 +55,15 @@ public class CSLab1
     //calc the HMacMD5 from plainText and Key2
     byte[] HMacMD5;
 
+    //Public Key
+    PublicKey publicKey;
+
+    //Signature
+    byte[] sig1File = new byte[128];
+    byte[] sig2File = new byte[128];
+
+    Signature mySig;
+
     public static void main(String[] args)
     {
         new CSLab1();
@@ -59,11 +74,19 @@ public class CSLab1
         final boolean debug = true;
         try {
             // read file enc file and put them inside 4 var
-            readEncKeysAndText();
+            fillEncKeysAndText();
 
             //TEST: print Enc the values
             if (debug) {
                 printEnc();
+            }
+
+            //fill the private key from file to public var called ReciverPrivateKey
+            fillReciverPrivateKey();
+
+            //TEST: print Enc the values
+            if (debug) {
+                printReciverPrivateKey();
             }
 
             //Decryption the values of the Keys and IV
@@ -90,6 +113,7 @@ public class CSLab1
                 printMac();
             }
 
+            //TASK 3: Verify the Message Authentication Code
             //calc HmacMD5 and fill var HmacMD5 with its value
             fillHmacMD5();
 
@@ -105,15 +129,93 @@ public class CSLab1
             } else if (compairArray(mac2, HMacMD5)) {
                 System.out.println("MAC2 is the correct one");
             } else {
-               System.out.println("no match found!!!");
+                System.out.println("no match found!!!");
             }
+            System.out.println("");
+
+            //TASK 4: Verify the Digital Signature
+            fillPublicKey();
+            //print the public key
+            
+            //TEST
+            if (debug) {
+                System.out.println(publicKey.toString());
+            }
+            
+            //fill the 2 var sig1File, sig2File
+            fillSignatures();
+
+            
+            System.out.println("Verify Signature 1 : " + mySig.verify(sig1File));
+            System.out.println("Verify Signature 2 : " + mySig.verify(sig2File));
 
         } catch (Exception ex) {
             Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    private void readEncKeysAndText()
+    private void fillPublicKey()
+    {
+        FileInputStream fin = null;
+        try {
+            fin = new FileInputStream("lab1Sign.cert");
+            CertificateFactory f = CertificateFactory.getInstance("X.509");
+            X509Certificate certificate = (X509Certificate) f.generateCertificate(fin);
+            publicKey = certificate.getPublicKey();
+        } catch (CertificateException ex) {
+            Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                fin.close();
+            } catch (IOException ex) {
+                Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+
+    private void fillSignatures()
+    {
+        FileInputStream fis1 = null;
+        FileInputStream fis2 = null;
+        try {
+            // read file enc file and put them inside 3 var
+            File f1 = new File("ciphertext.enc.sig1");
+            File f2 = new File("ciphertext.enc.sig2");
+
+            fis1 = new FileInputStream(f1);
+            fis2 = new FileInputStream(f2);
+
+            fis1.read(sig1File);
+            fis2.read(sig2File);
+
+            mySig = Signature.getInstance("SHA1withRSA");
+            mySig.initVerify(publicKey);
+            mySig.update(plainText);
+
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SignatureException ex) {
+            Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InvalidKeyException ex) {
+            Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                fis1.close();
+                fis2.close();
+            } catch (IOException ex) {
+                Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+    }
+
+    private void fillEncKeysAndText()
     {
         try {
             // read file enc file and put them inside 3 var
@@ -156,9 +258,7 @@ public class CSLab1
 
             Cipher rsaDec = Cipher.getInstance("RSA");
 
-            PrivateKey prK = getReciverPrivateKey();
-
-            rsaDec.init(Cipher.DECRYPT_MODE, prK);
+            rsaDec.init(Cipher.DECRYPT_MODE, reciverPrivateKey);
             Key1 = rsaDec.doFinal(encKey1);
             IV = rsaDec.doFinal(encIV);
             Key2 = rsaDec.doFinal(encKey2);
@@ -176,7 +276,7 @@ public class CSLab1
         }
     }
 
-    private PrivateKey getReciverPrivateKey()
+    private void fillReciverPrivateKey()
     {
         try {
             KeyStore s = KeyStore.getInstance("JCEKS");
@@ -184,8 +284,7 @@ public class CSLab1
             s.load(fis, "lab1StorePass".toCharArray());
             fis.close();
 
-            PrivateKey k = (PrivateKey) s.getKey("lab1EncKeys", "lab1KeyPass".toCharArray());
-            return k;
+            reciverPrivateKey = (PrivateKey) s.getKey("lab1EncKeys", "lab1KeyPass".toCharArray());
 
         } catch (FileNotFoundException ex) {
             Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
@@ -200,7 +299,6 @@ public class CSLab1
         } catch (UnrecoverableKeyException ex) {
             Logger.getLogger(CSLab1.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return null;
     }
 
     private void decryptText()
@@ -333,14 +431,19 @@ public class CSLab1
             return false;
         } else if (byteArray1.length != byteArray2.length) {
             return false;
-        } else{
+        } else {
             for (int i = 0; i < byteArray1.length; i++) {
-                if (byteArray1[i] != byteArray2[i]){
+                if (byteArray1[i] != byteArray2[i]) {
                     return false;
                 }
             }
             return true;
         }
+    }
+
+    private void printReciverPrivateKey()
+    {
+        System.out.println(reciverPrivateKey.toString());
     }
 
 }
