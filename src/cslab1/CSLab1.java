@@ -83,7 +83,7 @@ public class CSLab1
             }
 
             //fill mac from files
-                readMac();
+            readMac();
 
             //TEST: print the mac1 and mac2
             if (debug) {
@@ -96,6 +96,16 @@ public class CSLab1
             //TEST: print HmacMD5
             if (debug) {
                 printHMacMD5();
+            }
+
+            //check which mac is correct
+            System.out.println("");
+            if (compairArray(mac1, HMacMD5)) {
+                System.out.println("MAC1 is the correct one");
+            } else if (compairArray(mac2, HMacMD5)) {
+                System.out.println("MAC2 is the correct one");
+            } else {
+               System.out.println("no match found!!!");
             }
 
         } catch (Exception ex) {
@@ -314,6 +324,22 @@ public class CSLab1
         System.out.print("HmacMD5: ");
         for (byte b : HMacMD5) {
             System.out.print(b);
+        }
+    }
+
+    private boolean compairArray(byte[] byteArray1, byte[] byteArray2)
+    {
+        if (byteArray1 == null || byteArray2 == null) {           // even if both is null this will be consider not equal
+            return false;
+        } else if (byteArray1.length != byteArray2.length) {
+            return false;
+        } else{
+            for (int i = 0; i < byteArray1.length; i++) {
+                if (byteArray1[i] != byteArray2[i]){
+                    return false;
+                }
+            }
+            return true;
         }
     }
 
