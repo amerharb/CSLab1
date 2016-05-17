@@ -196,7 +196,7 @@ public class CSLab1
     private void decryptText()
     {
         try {
-            Cipher aesDec = Cipher.getInstance("AES/CBC/NoPadding");
+            Cipher aesDec = Cipher.getInstance("aes/cbc/pkcs5padding");
             Key k = new SecretKeySpec(Key1, "AES");
             IvParameterSpec v = new IvParameterSpec(IV);
 
